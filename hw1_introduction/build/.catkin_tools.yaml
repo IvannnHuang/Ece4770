@@ -1,0 +1,6 @@
+devel_space: /home/qh229/homework_ws/src/hw1_introduction/devel
+install: false
+install_space: /home/qh229/homework_ws/src/hw1_introduction/install
+profile: default
+source_space: /home/qh229/homework_ws/src/hw1_introduction/src
+workspace: /home/qh229/homework_ws/src/hw1_introduction
