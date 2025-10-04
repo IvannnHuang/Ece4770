@@ -133,6 +133,18 @@ class KinematicCarMotionModel:
         # Hint: use same controls for all the particles
         # BEGIN QUESTION 1.3
 
+        n_particles = states.shape[0]
+        # Build a controls array (M,2) with the same (vel, alpha) for all particles
+        controls = np.empty((n_particles, 2), dtype=float)
+        controls[:, 0] = vel
+        controls[:, 1] = alpha
+
+        # Compute vectorized changes and update in-place
+        changes = self.compute_changes(states, controls, dt)
+        states[:] = states + changes
+
+        # Normalize angles to (-pi, pi] using atan2(sin, cos)
+        states[:, 2] = np.arctan2(np.sin(states[:, 2]), np.cos(states[:, 2]))
         # END QUESTION
 
     def apply_motion_model(self, states, vel, alpha, dt):
@@ -161,5 +173,31 @@ class KinematicCarMotionModel:
         n_particles = states.shape[0]
 
         # BEGIN QUESTION 1.4
+        L = self.car_length
 
+        # 1) Sample noisy controls per particle
+        v_hat = vel   + np.random.normal(0.0, self.vel_std,   size=n_particles)
+        a_hat = alpha + np.random.normal(0.0, self.alpha_std, size=n_particles)
+
+        controls = np.empty((n_particles, 2), dtype=float)
+        controls[:, 0] = v_hat
+        controls[:, 1] = a_hat
+
+        # 2) Integrate with noisy controls to get Δx̂, Δŷ, Δθ̂
+        delta = self.compute_changes(states, controls, dt)  # (M,3)
+
+        # 3) Add model noise (independent of dt, per the spec/tests)
+        model_noise = np.stack([
+            np.random.normal(0.0, self.x_std,     size=n_particles),
+            np.random.normal(0.0, self.y_std,     size=n_particles),
+            np.random.normal(0.0, self.theta_std, size=n_particles),
+        ], axis=1)
+
+        delta_noisy = delta + model_noise
+
+        # Update in-place
+        states[:] = states + delta_noisy
+
+        # Normalize angles to (-pi, pi]
+        states[:, 2] = np.arctan2(np.sin(states[:, 2]), np.cos(states[:, 2]))
         # END QUESTION
