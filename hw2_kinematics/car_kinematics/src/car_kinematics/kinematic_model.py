@@ -67,7 +67,44 @@ class KinematicCarMotionModel:
 
         """
         # BEGIN"QUESTION 1.2 ALT="return np.zeros_like(states, dtype=float)"
+        # Unpack
+        x     = states[:, 0]
+        y     = states[:, 1]
+        theta = states[:, 2]
+        v     = controls[:, 0]
+        alpha = controls[:, 1]
 
+        L = self.car_length
+
+        # Angular velocity and new heading
+        tan_alpha = np.tan(alpha)
+        omega     = (v / L) * tan_alpha
+        theta_new = theta + omega * dt
+
+        # Output buffers
+        dx     = np.zeros_like(x, dtype=float)
+        dy     = np.zeros_like(y, dtype=float)
+        dtheta = np.zeros_like(theta, dtype=float)
+
+        # Mask for "straight" motion (avoid division by ~0)
+        straight = np.abs(alpha) < alpha_threshold
+        turning  = ~straight
+
+        # Straight-line updates
+        if np.any(straight):
+            dx[straight]     = v[straight] * np.cos(theta[straight]) * dt
+            dy[straight]     = v[straight] * np.sin(theta[straight]) * dt
+            dtheta[straight] = 0.0
+
+        # Turning updates (use radius R = L / tan(alpha))
+        if np.any(turning):
+            R = L / tan_alpha[turning]
+            dx[turning]     = R * (np.sin(theta_new[turning]) - np.sin(theta[turning]))
+            dy[turning]     = R * (np.cos(theta[turning]) - np.cos(theta_new[turning]))
+            dtheta[turning] = theta_new[turning] - theta[turning]
+
+        # Stack back to (M,3): [dx, dy, dtheta]
+        return np.vstack((dx, dy, dtheta)).T
         # END QUESTION
 
     def apply_deterministic_motion_model(self, states, vel, alpha, dt):
