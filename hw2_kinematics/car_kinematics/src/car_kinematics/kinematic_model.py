@@ -144,7 +144,11 @@ class KinematicCarMotionModel:
         states[:] = states + changes
 
         # Normalize angles to (-pi, pi] using atan2(sin, cos)
-        states[:, 2] = np.arctan2(np.sin(states[:, 2]), np.cos(states[:, 2]))
+        # states[:, 2] = np.arctan2(np.sin(states[:, 2]), np.cos(states[:, 2]))
+        theta = states[:, 2]
+        theta = (theta + np.pi) % (2.0 * np.pi) - np.pi   # now in [-π, π)
+        theta[theta <= -np.pi] = np.pi                    # enforce (−π, π]
+        states[:, 2] = theta
         # END QUESTION
 
     def apply_motion_model(self, states, vel, alpha, dt):
@@ -199,5 +203,9 @@ class KinematicCarMotionModel:
         states[:] = states + delta_noisy
 
         # Normalize angles to (-pi, pi]
-        states[:, 2] = np.arctan2(np.sin(states[:, 2]), np.cos(states[:, 2]))
+        # states[:, 2] = np.arctan2(np.sin(states[:, 2]), np.cos(states[:, 2]))
+        theta = states[:, 2]
+        theta = (theta + np.pi) % (2.0 * np.pi) - np.pi   # now in [-π, π)
+        theta[theta <= -np.pi] = np.pi                    # enforce (−π, π]
+        states[:, 2] = theta
         # END QUESTION
