@@ -102,7 +102,14 @@ class WidowX:
     def camera_offset(self) -> np.ndarray:
         """Helper function implementing the camera frame transformation."""
         # BEGIN QUESTION 2.1 ALT="return np.zeros((4,4), dtype=float)"
-
+        R = np.array([[ 0.0, 0.0, -1.0],
+                    [-1.0, 0.0,  0.0],
+                    [ 0.0, 1.0,  0.0]])
+        t = np.array([-0.05, 0.0, 0.05])  # meters
+        T = np.eye(4)
+        T[:3, :3] = R
+        T[:3,  3] = t
+        return T
         # END QUESTION
 
     def forward_kinematics(self) -> np.ndarray:
@@ -116,11 +123,29 @@ class WidowX:
     def vdes_ee_world_frame(self) -> np.ndarray:
         """Desired end-effector velocity in the world frame."""
         # BEGIN QUESTION 2.2 ALT="return np.zeros((3,), dtype=float)"
-
+        # Current camera pose in world frame (4x4). Position is last column.
+        T_CG = self.forward_kinematics()         
+        p_current_G = T_CG[:3, 3]
+        
+        # Proportional position controller in world frame
+        v_des_G = self.Kp * (self.target_position_world_frame - p_current_G)
+        return v_des_G.astype(float)               # shape (3,)
         # END QUESTION
         
     def qdot_tracking(self) -> np.ndarray:
         """Compute joint velocities to achieve desired end-effector velocity in world frame."""
         # BEGIN "QUESTION 2.3" ALT="return np.zeros((6,), dtype=float)"
+        """Return joint rates that least-squares track the desired camera velocity."""
+        v_des_G = self.vdes_ee_world_frame()                 # shape (3,)
+        J = self.camera_pos_jacob_world_frame()              # shape (3,6)
 
+        # minimal-norm LS
+        lam = getattr(self, "pinv_damping", 0.0)
+        if lam > 0:
+            J_pinv = J.T @ np.linalg.inv(J @ J.T + (lam**2) * np.eye(3))
+        else:
+            J_pinv = np.linalg.pinv(J)
+
+        qdot_des = (J_pinv @ v_des_G).reshape(6,)
+        return qdot_des.astype(float)
         # END QUESTION

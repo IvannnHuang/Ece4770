@@ -25,3 +25,10 @@ Figure 4, on the other hand, uses a larger steering angle (α = 0.4 rad) and lon
 
 
 ![model_para_2](model_para_2.png)
+
+
+Q2.4
+
+1. The end-effector orientation does not match because the controller tracks position only using the 3x6 position Jacobian J_pos. No rotational error is commanded, so orientation is free in the null space. To track orientation, add a rotational term (quaternion error) and solve with the 6x6 geometric Jacobian: q_dot = J_geo [v_des_G; w_des_G].
+
+2. With small Kp the arm moves slowly, lags the figure-8 movement pattern, and can show steady-state position error. With large Kp the arm reacts quickly, reducing lag, but it tends to overshoot and oscillate; joint rates can saturate and the solution becomes sensitive near singularities. 
