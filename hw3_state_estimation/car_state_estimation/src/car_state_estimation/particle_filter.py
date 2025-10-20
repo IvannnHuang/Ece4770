@@ -44,7 +44,20 @@ class ParticleInitializer:
         """
         n_particles = particles.shape[0]
         # BEGIN SOLUTION "QUESTION 2.1"
+        # Vectorized Gaussian init around clicked pose
+        mu = utils.pose_to_particle(msg)
+        n = n_particles
 
+        # Sample x, y, theta with given stds
+        particles[:, 0] = mu[0] + self.rng.normal(0.0, self.x_std, n)
+        particles[:, 1] = mu[1] + self.rng.normal(0.0, self.y_std, n)
+        particles[:, 2] = mu[2] + self.rng.normal(0.0, self.theta_std, n)
+        
+        # Wrap angles to [-pi, pi]
+        particles[:, 2] = (particles[:, 2] + np.pi) % (2.0 * np.pi) - np.pi
+
+        # Uniform weights in-place
+        weights[:] = 1.0 / n 
         # END SOLUTION
 
 
@@ -126,7 +139,15 @@ class ParticleFilter:
         self.permissible_x, self.permissible_y = np.where(self.permissible_region == 1)
 
         # BEGIN SOLUTION "QUESTION 2.2"
+        # Get topic names from ROS parameters 
+        t_inferred = rospy.get_param("~inferred_pose", "/car/particle_filter/inferred_pose")
+        t_particles = rospy.get_param("~particles",      "/car/particle_filter/particles")
+        t_odom     = rospy.get_param("~odom",           "/car/particle_filter/odom")
 
+        # Create the publishers 
+        self.pose_pub = rospy.Publisher(t_inferred, PoseStamped, queue_size=1, latch=True)
+        self.particle_pub = rospy.Publisher(t_particles, PoseArray, queue_size=1, latch=True)
+        self.pub_odom = rospy.Publisher(t_odom, Odometry, queue_size=1, latch=True)
         # END SOLUTION
 
 

@@ -55,7 +55,18 @@ class CylinderTracker:
         initial_cov = np.diag([10e7, 10e7])
 
         # BEGIN SOLUTION 1.4 ###################################################
+        # Number of particles to be initialized for the particle filter
+        num_particles = 800
 
+        # Constant velocity to be supplied to ParticleFilter.predict
+        self.constant_vel = np.array([0.0, 0.0], dtype = float)
+
+        # Sample motion model noise with this std=std_constant_vel
+        std_constant_vel = 2.0
+
+        # Initial mean and covariance of the sampled particles
+        initial_mean = np.array([320., 240.], dtype=float).reshape((-1, 1))
+        initial_cov = np.diag([25.0**2, 25.0**2])
         # END SOLUTION #########################################################
 
         self.pf = ParticleFilter(

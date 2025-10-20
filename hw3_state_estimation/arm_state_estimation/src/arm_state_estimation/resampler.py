@@ -26,7 +26,7 @@ class LowVarianceSampler:
 
         # You may want to cache some intermediate variables here for efficiency
         # BEGIN SOLUTION "QUESTION 1.3"
-
+        self._buf = np.empty_like(self.particles)  # scratch buffer for in-place copy-back
         # END SOLUTION
 
     def resample(self):
@@ -44,6 +44,29 @@ class LowVarianceSampler:
         # https://docs.python.org/3/library/threading.html#using-locks-conditions-and-semaphores-in-the-with-statement
         with self.state_lock:
             # BEGIN SOLUTION "QUESTION 1.3"
+            M = self.n_particles
+            w = self.weights
 
+            # Normalize
+            w_sum = float(w.sum())
+            if not np.isfinite(w_sum) or w_sum <= 0.0:
+                w[:] = 1.0 / M
+            else:
+                w[:] = w / w_sum
+
+            # Low variance resampling
+            r = self.rng.random() / M
+            c = w[0]
+            i = 0
+            for m in range(M):
+                U = r + m / M 
+                while U > c and i < M - 1:
+                    i += 1
+                    c += w[i]
+                self._buf[m, :] = self.particles[i, :]
+
+            # Copy back in place
+            self.particles[:] = self._buf
+            self.weights[:] = 1.0 / M
             # END SOLUTION
             pass # Remove this line to start

@@ -38,7 +38,10 @@ class ParticleFilter:
         """
         dt = 0.1
         # BEGIN SOLUTION 1.1 #################################################
-
+        M = self.particles.shape[0]
+        drift = u * dt
+        noise = self.rng.standard_normal((M,2)) * self.std_u
+        self.particles += drift + noise
         # END SOLUTION #######################################################
 
     def update(self, z):
@@ -49,7 +52,18 @@ class ParticleFilter:
             z: detector observation
         """
         # BEGIN SOLUTION 1.2 ###################################################
-
+        z = np.asarray(z).reshape(2,)
+        d = np.linalg.norm(self.particles - z[None, :], axis=1)
+        s = d.max() - d
+        if np.allclose(s, 0):
+            self.weights[:] = 1.0 / self.num_particles
+        else: 
+            s_sum = s.sum()
+            if s_sum == 0:
+                self.weights[:] = 1.0 / self.num_particles
+            else:
+                self.weights[:] = s / s_sum
+                self.weights[-1] = 1.0 - self.weights[:-1].sum()
         # END SOLUTION #########################################################
 
         mean, cov = self.mean_and_variance()
