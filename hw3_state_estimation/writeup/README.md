@@ -15,7 +15,7 @@ These values produced smooth motion and accurate convergence without excessive j
 A smaller noise caused lag, while a larger one increased randomness.  
 The final configuration achieved a **mean position error of about 2 pixels**, as shown by the red running mean in the plot, indicating consistent and stable tracking performance.
 
-#### **Plot of position error across time**
+#### **Position error across time**
 ![Position Tracking Error](../figures/position_error.png)
 
 
@@ -48,7 +48,7 @@ This shape reflects higher uncertainty because the laser scan matches multiple m
 The filter thus distributes belief across more possible poses until the car moves or more distinctive features are observed.
 
 #### **Summary**
-- **Hallway:** narrow, elongated cloud → constrained laterally, uncertain longitudinally.  
-- **Intersection:** wide, multi-directional cloud → ambiguous environment geometry increases uncertainty.
+- Hallway: narrow, elongated cloud → constrained laterally, uncertain longitudinally.  
+- Intersection: wide, multi-directional cloud → ambiguous environment geometry increases uncertainty.
 
 These results confirm that the particle filter correctly encodes spatial ambiguity: the particle cloud expands in open or symmetric areas and contracts in constrained environments.
