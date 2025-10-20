@@ -31,7 +31,7 @@ The resulting visualization confirmed that the publishers worked correctly and t
 For this task, the car was driven to two distinct locations shown by the red arrows in the provided map.  
 Screenshots of the particle cloud at both locations are saved in `../figures/rviz_tracking1.png` and `../figures/rviz_tracking2.png`.
 
-#### **Location 1 – Hallway (Straight Orientation)**
+#### **Location 1 – Hallway**
 ![Hallway Particle Cloud](../figures/rviz_tracking1.png)
 
 At this position, the car is placed in a long hallway and pointed straight down the corridor.  
@@ -39,7 +39,7 @@ The particle cloud forms a **narrow, elongated distribution along the hallway ax
 This occurs because the laser scan provides strong constraints on the car’s **lateral position**—walls on both sides tightly restrict side movement—but weak constraints on **longitudinal position**.  
 As a result, the filter maintains higher uncertainty along the direction of travel (forward–backward) while being confident across the hallway width.
 
-#### **Location 2 – Intersection (Open Area)**
+#### **Location 2 – Intersection**
 ![Intersection Particle Cloud](../figures/rviz_tracking2.png)
 
 Here, the car is positioned in the center of an intersection where multiple corridors intersect.  
