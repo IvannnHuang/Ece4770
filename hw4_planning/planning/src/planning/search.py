@@ -85,7 +85,10 @@ class ASTARPlanner(object):
                 # - h contains the heuristic value for the current neighbor. Can you use this to compute the neighbor’s f-value?
 
                 ### BEGIN QUESTION 1.2 #####################
-
+                if expanded[neighbor]: continue
+                g_neighbor = entry.cost_to_come + weight
+                f_neighbor = g_neighbor + h
+                queue.push(QueueEntry(f_neighbor, next(c), neighbor, entry.node, g_neighbor))
                 ### END QUESTION 1.2 #####################
         raise nx.NetworkXNoPath("Node {} not reachable from {}".format(goal, start))
 
@@ -102,7 +105,13 @@ class ASTARPlanner(object):
         """
         # Follow the parents of the node until a NULL entry is reached
         ### BEGIN QUESTION 1.2 ##################### 
-
+        vpath = []
+        cur = goal
+        while cur != NULL:
+            vpath.append(int(cur))
+            cur = parents[cur]
+        vpath.reverse()
+        return vpath
         ### END QUESTION 1.2 #####################
 
 
@@ -196,7 +205,22 @@ class RRTPlanner(object):
                   stop iterations and set goal_id
                 '''
                 ### BEGIN QUESTION 2.1 #####################
+                near = self.tree.GetNearestVertex(x_rand)
+                near_id = int(near[0]) if isinstance(near, (tuple, list, np.ndarray)) else int(near)
+                x_near = np.asarray(self.tree.vertices[near_id]).reshape(1, dim)
 
+                x_new = self.extend(x_near, x_rand)
+                if x_new is None:
+                    continue
+
+                new_vid = self.tree.AddVertex(x_new)
+                self.tree.AddEdge(near_id, new_vid)   
+                new_eid.append(new_vid)
+
+                if self.prob.compute_distance_rrt(x_new, self.end) < epsilon:
+                    goal_id = new_vid
+                    found = True
+                    break
                 ### END QUESTION 2.1 #######################
 
             if isinstance(self.prob, problems.R2Problem) and self.show_tree:
@@ -308,7 +332,17 @@ class RRTPlanner(object):
         - Finally, how would you express the desired point x_new in terms of x_near and the (properly-scaled) vector v?
         '''
         ### BEGIN QUESTION 2.1 #####################
-
+        v = x_rand - x_near
+        dist = np.linalg.norm(v)
+        if dist == 0:
+            return None
+        step_size = self.eta * dist
+        direction = v / dist
+        x_new = x_near + direction * step_size
+        if not self.prob.check_edge_validity(x_near, x_new):
+            self.collision += 1
+            return None
+        return x_new
         ### END QUESTION 2.1 #######################
         self.collision += 1
         return None

@@ -3,7 +3,9 @@ import numpy
 
 # You might want to import additional packages here if needed.
 ### BEGIN QUESTION 2.2 #####################
-
+import os
+import pickle
+from pathlib import Path
 ### END QUESTION 2.2 #####################
 
 
@@ -92,7 +94,17 @@ class RRTTree(object):
         @param filename path to save the tree
         '''
         ### BEGIN QUESTION 2.2 #####################
+        path = Path(filename)
+        path.parent.mkdir(parents=True, exist_ok=True)
 
+        payload = {
+            "vertices": self.vertices,   
+            "costs": self.costs,         
+            "edges": dict(self.edges),   
+        }
+
+        with open(path, "wb") as f:
+            pickle.dump(payload, f, protocol=pickle.HIGHEST_PROTOCOL)
         ### END QUESTION 2.2 #####################
 
     def LoadTree(self, filename):
@@ -101,5 +113,15 @@ class RRTTree(object):
         @param filename path to load the tree from
         '''
         ### BEGIN QUESTION 2.2 #####################
+        with open(filename, "rb") as f:
+            payload = pickle.load(f)
 
+        self.vertices = payload.get("vertices", [])
+        self.costs    = payload.get("costs",    [0] * len(self.vertices))
+        raw_edges     = payload.get("edges", {})
+
+        self.edges = {int(child): (None if parent is None else int(parent))
+                    for child, parent in raw_edges.items()}
+
+        return self
         ### END QUESTION 2.2 #####################

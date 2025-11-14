@@ -144,7 +144,7 @@ class R2Problem(PlanarProblem):
         q1_2d = np.atleast_2d(q1)
         q2_2d = np.atleast_2d(q2)
         ### BEGIN QUESTION 1.1 #####################
-
+        return np.linalg.norm(q1_2d - q2_2d, axis=1)
         ### END QUESTION 1.1 #######################
 
     def cost_to_go(self, q1, goal):
@@ -223,7 +223,26 @@ class SE2Problem(PlanarProblem):
         q1_2d = np.atleast_2d(q1)
         q2_2d = np.atleast_2d(q2)
         ### BEGIN QUESTION 4 #####################
+        n1 = q1_2d.shape[0]
+        n2 = q2_2d.shape[0]
 
+        if n1 == 0 or n2 == 0:
+            return np.zeros((0,), dtype=float)
+
+        if n1 == 1 and n2 > 1:
+            q1_2d = np.repeat(q1_2d, n2, axis=0)
+            N = n2
+        elif n2 == 1 and n1 > 1:
+            q2_2d = np.repeat(q2_2d, n1, axis=0)
+            N = n1
+        else:
+            assert n1 == n2
+            N = n1
+
+        costs = np.empty((N,), dtype=float)
+        for i in range(N):
+            costs[i] = dubins.path_length(q1_2d[i], q2_2d[i], self.curvature)
+        return costs
         ### END QUESTION 4 #######################
 
     def cost_to_go(self, q1, goal):
@@ -292,7 +311,32 @@ class JointSpace(object):
             time: float scalar, time spent in executing motion between two states
         '''
         ### BEGIN QUESTION 6 #####################
+        start_2d = np.atleast_2d(start_config)
+        goal_2d  = np.atleast_2d(goal_config)
 
+        n1 = start_2d.shape[0]
+        n2 = goal_2d.shape[0]
+
+        if n1 == 1 and n2 > 1:
+            start_2d = np.repeat(start_2d, n2, axis=0)
+            N = n2
+        elif n2 == 1 and n1 > 1:
+            goal_2d = np.repeat(goal_2d, n1, axis=0)
+            N = n1
+        else:
+            assert n1 == n2
+            N = n1
+
+        v = np.array([1.0, 1.2, 0.8, 0.75, 1.05, 0.9])
+
+        diff = goal_2d - start_2d
+        diff = (diff + np.pi) % (2.0 * np.pi) - np.pi
+
+        joint_times = np.abs(diff) / v  
+
+        times = np.max(joint_times, axis=1)
+
+        return times
         ### END QUESTION 6 #######################
 
     def state_validity_checker(self, q):
@@ -383,7 +427,10 @@ class JointSpace(object):
             heuristic: scalar float, admissible heuristic that is non-negative and does not overestimate distance from config to goal_config
         '''
         ### BEGIN QUESTION 5 #####################
-
+        h = self.compute_distance(config_2d, goal_config_2d)
+        eps = 1e-8
+        h = np.maximum(h - eps, 0.0)
+        return h
         ### END QUESTION 5 #######################
 
 
