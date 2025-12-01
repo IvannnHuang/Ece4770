@@ -95,13 +95,10 @@ class ModelPredictiveController(BaseController):
 
         # BEGIN SOLUTION "QUESTION 4.2" ALT="raise NotImplementedError"
         for t in range(1, self.T):
-            prev_pose = rollouts[:, t - 1, :]
-            u_t = controls[:, t - 1, :]          # shape (K, 2)
-
-            dx, dy, dtheta = self.motion_model.compute_changes(prev_pose, u_t, dt)
-            rollouts[:, t, 0] = prev_pose[:, 0] + dx
-            rollouts[:, t, 1] = prev_pose[:, 1] + dy
-            rollouts[:, t, 2] = prev_pose[:, 2] + dtheta
+            prev_pose = rollouts[:, t - 1, :]      # (K, 3)
+            u_t = controls[:, t - 1, :]            # (K, 2)
+            delta = self.motion_model.compute_changes(prev_pose, u_t, dt)
+            rollouts[:, t, :] = prev_pose + delta  # (K, 3)
         # END SOLUTION
         return rollouts
 
