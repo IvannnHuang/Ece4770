@@ -58,6 +58,19 @@ class PIDController(BaseController):
                 (velocity should be copied from reference velocity)
         """
         # BEGIN SOLUTION "QUESTION 2.1" ALT="raise NotImplementedError"
+        v_ref = reference_xytv[3]
+        e_ct = error[1]
 
+        theta = pose[2]
+        theta_ref = reference_xytv[2]
+        e_theta = (theta - theta_ref + np.pi) % (2 * np.pi) - np.pi
 
+        d_e_ct = v_ref * np.sin(e_theta)
+        dt = 1.0 / self.frequency
+
+        with self.state_lock:
+            self.error_sum += e_ct * dt
+            alpha = -(self.kp * e_ct + self.ki * self.error_sum + self.kd * d_e_ct)
+
+        return np.array([v_ref, alpha])
         # END SOLUTION
