@@ -300,9 +300,9 @@ def get_ros_params():
         # kp, ki, kd: PID controller gains, data type: float
 
         params = {
-            "kp": None,
-            "ki": None,
-            "kd": None,
+            "kp": float(rospy.get_param("~pid/kp")),
+            "ki": float(rospy.get_param("~pid/ki")),
+            "kd": float(rospy.get_param("~pid/kd")),
         }
 
         ## END SOLUTION Q2.1 ##
