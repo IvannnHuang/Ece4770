@@ -15,8 +15,19 @@ def compute_position_in_frame(p, frame):
         error: p expressed in the new coordinate frame [e_x, e_y]
     """
     # BEGIN SOLUTION "QUESTION 1.2" ALT="raise NotImplementedError"
+    p = np.asarray(p)
+    frame = np.asarray(frame)
 
+    dx = p[0] - frame[0]
+    dy = p[1] - frame[1]
 
+    c = np.cos(frame[2])
+    s = np.sin(frame[2])
+
+    ex = c * dx + s * dy
+    ey = -s * dx + c * dy
+
+    return np.array([ex, ey])
     # END SOLUTION
 
 
