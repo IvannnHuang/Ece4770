@@ -59,9 +59,14 @@ class PIDController():
                 u: 6D joint velocity
         '''
         # BEGIN SOLUTION Q3 ##
+        error = self.get_error()
+        dt = 1.0 / self.frequency
 
+        self.d_error = (error - self.p_error) * self.frequency
+        self.i_error += error * dt
+        self.p_error = error
 
-
+        u = -(self.kp * error + self.ki * self.i_error + self.kd * self.d_error)
         # END SOLUTION Q3 ##
 
         # To make sure speed does not exceed joint velocity limit
