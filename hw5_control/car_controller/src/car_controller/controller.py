@@ -77,10 +77,32 @@ class BaseController(object):
             # Hint: compute all the distances from the current state to the
             # path's waypoints. 
             # BEGIN SOLUTION "QUESTION 1.1" ALT="raise NotImplementedError"
+            pose_xy = np.asarray(pose[:2])
+            path_xy = path_xytv[:, :2]
 
+            diffs = path_xy - pose_xy
+            dists = np.linalg.norm(diffs, axis=1)
 
+            closest_idx = int(np.argmin(dists))
+
+            remaining = dists[closest_idx:]
+            mask = remaining >= distance_lookahead
+
+            if not np.any(mask):
+                return len(path_xytv) - 1
+
+            rel_idx = int(np.argmax(mask))
+            idx = closest_idx + rel_idx
+
+            # optional refinement
+            if idx > closest_idx:
+                prev_idx = idx - 1
+                if abs(dists[prev_idx] - distance_lookahead) < abs(dists[idx] - distance_lookahead):
+                    idx = prev_idx
+                    
+            return idx
             # END SOLUTION
-            return len(path_xytv) - 1
+            # return len(path_xytv) - 1
 
     def get_error(self, pose, reference_xytv):
         """Compute the error vector.
