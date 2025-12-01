@@ -59,8 +59,8 @@ class ModelPredictiveController(BaseController):
         controls[:, :, 0] = 0  # to be pulled from the reference path later
 
         # BEGIN SOLUTION "QUESTION 4.1" ALT="raise NotImplementedError"
-
-
+        alphas = np.linspace(self.min_alpha, self.max_alpha, self.K)
+        controls[:, :, 1] = alphas[:, None]
         # END SOLUTION
         return controls
 
@@ -94,7 +94,20 @@ class ModelPredictiveController(BaseController):
         rollouts[:, 0, :] = pose  # all K rollouts start at current state
 
         # BEGIN SOLUTION "QUESTION 4.2" ALT="raise NotImplementedError"
-
+        for t in range(1, self.T):
+            v = controls[:, t - 1, 0]
+            a = controls[:, t - 1, 1]
+            dx, dy, dtheta = self.motion_model.compute_changes(
+                rollouts[:, t - 1, 0],
+                rollouts[:, t - 1, 1],
+                rollouts[:, t - 1, 2],
+                v,
+                a,
+                dt,
+            )
+            rollouts[:, t, 0] = rollouts[:, t - 1, 0] + dx
+            rollouts[:, t, 1] = rollouts[:, t - 1, 1] + dy
+            rollouts[:, t, 2] = rollouts[:, t - 1, 2] + dtheta
         # END SOLUTION
         return rollouts
 
@@ -117,8 +130,10 @@ class ModelPredictiveController(BaseController):
         # coordinate of the final rollout state, and the x- and y- coordinate of
         # the reference state
         # BEGIN SOLUTION "QUESTION 4.3" ALT="raise NotImplementedError"
-
-
+        final_states = rollouts[:, -1, :2]
+        ref_xy = reference_xyt[:2]
+        dist = np.linalg.norm(final_states - ref_xy, axis=1)
+        return self.error_w * dist
         # END SOLUTION
 
     def compute_collision_cost(self, rollouts, _):
@@ -145,7 +160,8 @@ class ModelPredictiveController(BaseController):
         rollout_collisions = collisions.reshape((self.K, self.T))
 
         # BEGIN SOLUTION "QUESTION 4.3" ALT="raise NotImplementedError"
-
+        counts = rollout_collisions.sum(axis=1)
+        return self.collision_w * counts
         # END SOLUTION
 
     def compute_rollout_cost(self, rollouts, reference_xyt):
@@ -189,10 +205,10 @@ class ModelPredictiveController(BaseController):
         self.sampled_controls[:, :, 0] = reference_xytv[3]
 
         # BEGIN SOLUTION "QUESTION 4.4" ALT="rollouts = np.zeros((self.K, self.T, 3))"
-
+        rollouts = self.get_rollout(pose, self.sampled_controls)
         # END SOLUTION
         # BEGIN SOLUTION "QUESTION 4.4" ALT="costs = np.zeros(self.K)"
-
+        costs = self.compute_rollout_cost(rollouts, reference_xytv[:3])
         # END SOLUTION
 
         # Set the controller's rollouts and costs (for visualization purposes).
@@ -202,8 +218,8 @@ class ModelPredictiveController(BaseController):
 
         # Hint: Note that the reference velocity has already been stored in self.sampled_controls.
         # BEGIN SOLUTION "QUESTION 4.4" ALT="raise NotImplementedError"
-
-
+        idx = np.argmin(costs)
+        return self.sampled_controls[idx, 0]
         # END SOLUTION
 
     def reset_params(self, **kwargs):
