@@ -1,8 +1,8 @@
 pid:
-  kp: 0.8
-  ki: 0.05
-  kd: 0.5
+  kp: 0.6
+  ki: 0.0001
+  kd: 0.4
 mpc:
   K: 62
   T: 8
-  distance_lookahead : 1.2
+  distance_lookahead : 1.5
