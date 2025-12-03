@@ -119,6 +119,24 @@ class PlannerROSWithControl(PlannerROS):
     def send_path(self, path_states):
         """Send a planned path to the controller."""
         """BEGIN SOLUTION. HINT: Send nav_msgs.msg.Path object to controller"""
+        path_msg = Path()
+        path_msg.header = Header()
+        path_msg.header.stamp = rospy.Time.now()
+        path_msg.header.frame_id = "map"
 
+        for state in path_states:
+            pose = PoseStamped()
+            pose.header = path_msg.header
+            pose.pose.position.x = state[0]
+            pose.pose.position.y = state[1]
+            pose.pose.orientation = utils.angle_to_quaternion(state[2])
+            path_msg.poses.append(pose)
+
+        # Publish for visualization
+        self._path_pub.publish(path_msg)
+
+        # Send to controller (FollowPath service)
+        result = self.controller(path_msg)
+        return result
         """END SOLUTION"""
 
