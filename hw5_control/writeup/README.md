@@ -16,7 +16,7 @@ and the integral term is accumulated numerically. The controller returns the ref
 
 ### PID Tuning
 
-I tuned the controller on the `circle`, `left-turn`, and `wave` paths. I increased $kp$ until tracking was responsive but began to oscillate, then increased $kd$ to stabilize turns. A very small $ki$ was added to correct small steady-state bias on circular motion.
+I tuned the controller on the `circle`, `left-turn`, and `wave` paths. I increased `kp` until tracking was responsive but began to oscillate, then increased `kd` to stabilize turns. A very small `ki` was added to correct small steady-state bias on circular motion.
 
 Final PID gains:
 
@@ -41,7 +41,7 @@ I implemented a joint-space PID controller where joint error is the difference b
 I implemented all four MPC components:
 
 **1. Control Sampling:**
-Generated $K$ steering-angle sequences evenly spaced in `[min_alpha, max_alpha]`, each repeated for `T-1` timesteps.
+Generated `K` steering-angle sequences evenly spaced in `[min_alpha, max_alpha]`, each repeated for `T-1` timesteps.
 
 **2. Rollout Generation:**
 Applied the kinematic car model to propagate each sequence and produce a `K × T` set of predicted states.
