@@ -24,9 +24,9 @@ Final PID gains:
 
 PID Results
 
-<img src="./pid_car_path_circle.png" alt="alt text" width="600"/>
-<img src="./pid_car_path_left_turn.png" alt="alt text" width="600"/>
-<img src="./pid_car_path_wave.png" alt="alt text" width="600"/>
+<img src="./pid_car_path_circle.png" alt="alt text" width="400"/>
+<img src="./pid_car_path_left_turn.png" alt="alt text" width="400"/>
+<img src="./pid_car_path_wave.png" alt="alt text" width="400"/>
 
 These parameters yield smooth tracking with minimal overshoot and no oscillation.
 
@@ -68,7 +68,7 @@ These values produced smooth obstacle-avoidance behavior and tight convergence b
 
 Insert your screenshot(s):
 
-<img src="./mpc_car_path_line.png" alt="alt text" width="600"/>
+<img src="./mpc_car_path_line.png" alt="alt text" width="400"/>
 
 ### Saw Path Difficulty
 
