@@ -119,24 +119,44 @@ class PlannerROSWithControl(PlannerROS):
     def send_path(self, path_states):
         """Send a planned path to the controller."""
         """BEGIN SOLUTION. HINT: Send nav_msgs.msg.Path object to controller"""
-        path_msg = Path()
+        viz_msg = PoseArray()
+        viz_msg.header = Header()
+        viz_msg.header.stamp = rospy.Time.now()
+        viz_msg.header.frame_id = "map"
+
+        for state in path_states:
+            pose = PoseStamped()
+            pose.pose.position.x = state[0]
+            pose.pose.position.y = state[1]
+            pose.pose.orientation = utils.angle_to_quaternion(state[2]).pose.orientation
+            viz_msg.poses.append(pose.pose)
+
+        self._path_pub.publish(viz_msg)
+
+        # ----------------------------------------------------------
+        # 2. Convert path_states → FollowPathRequest (PoseArray)
+        # ----------------------------------------------------------
+        path_msg = PoseArray()
         path_msg.header = Header()
         path_msg.header.stamp = rospy.Time.now()
         path_msg.header.frame_id = "map"
 
         for state in path_states:
-            pose = PoseStamped()
-            pose.header = path_msg.header
-            pose.pose.position.x = state[0]
-            pose.pose.position.y = state[1]
-            pose.pose.orientation = utils.angle_to_quaternion(state[2])
-            path_msg.poses.append(pose)
+            ps = PoseStamped()
+            ps.pose.position.x = state[0]
+            ps.pose.position.y = state[1]
+            ps.pose.orientation = utils.angle_to_quaternion(state[2]).pose.orientation
+            path_msg.poses.append(ps.pose)
 
-        # Publish for visualization
-        self._path_pub.publish(path_msg)
+        # ----------------------------------------------------------
+        # 3. Call FollowPath service
+        # ----------------------------------------------------------
+        try:
+            controller_result = self.controller(path_msg)
+        except Exception as e:
+            rospy.logerr("FollowPath service failed: %s", str(e))
+            return None
 
-        # Send to controller (FollowPath service)
-        result = self.controller(path_msg)
-        return result
+        return controller_result
         """END SOLUTION"""
 
