@@ -46,37 +46,62 @@ class Airport(object):
             goal_name (string): 
                 key value in AIRPORT_POS_DICT
         '''
-        goal = self.AIRPORT_POS_DICT[goal_name]
-        if goal_name.split('_')[0] == "pickup":
+        goal = np.array(self.AIRPORT_POS_DICT[goal_name], dtype=float)
+        if goal_name.split('_')[0] == "pickup" and detected_goal is not None:
             goal[1] = detected_goal
+
         ### BEGIN SOLUTION
-        # use self.planning_context.compute_ik() to convert goal (which contains end effect location and orientation) to joint space
-        # Note that we only need values for the first 6 joints (the last 3 joint values are for gripper fingers, and we will ignore them for now).
 
-        # use controller.get_current_joints() to get the current joint values and cast it into numpy array
+        # ---- 1. Compute IK → q_goal (first 6 joints)
+        q_goal_full = self.planning_context.compute_ik(goal)
+        if q_goal_full is None:
+            print("[ERROR] IK failed for goal:", goal_name)
+            return
+        q_goal = np.asarray(q_goal_full[:6], dtype=float).reshape(6)
 
-        # Insert current joint to roadmap as start position through self.rm.add_node, make use of the is_start flag
-        # Use self.rm.add_node(), Assign output to a vairable called start_id 
+        # ---- 2. Get current joint values
+        try:
+            q_start = np.asarray(self.pid_controller.get_current_joints()[:6],
+                                 dtype=float).reshape(6)
+        except:
+            q_start = np.asarray(self.pid_controller.current_position[:6],
+                                 dtype=float).reshape(6)
 
+        # ---- 3. Insert start node
+        start_id = self.rm.add_node(q_start, is_start=True)
 
-        # Insert goal joint values you just computed to roadmap, make use of the is_start flag
-        # Use self.rm.add_node(), Assign output to a vairable called goal_id 
+        # ---- 4. Insert goal node
+        goal_id = self.rm.add_node(q_goal, is_start=False)
 
-        ### END
+        ### END SOLUTION
 
         vpath, _ = self.astar_planner.Plan(start_id, goal_id)
         plan = self.extract_plan(vpath)
-        #### BEGIN SOLUTION, let the pid_controller excute the plan ####
+
+        #### BEGIN SOLUTION, let the pid_controller execute the plan ####
+
+        # Convert plan (qpath) to Interbotix-style trajectory
+        joint_names = self.bot.arm.group_info.joint_names
+        raw_traj = []
+        t = 0.0
+        dt = 2.0  # seconds between waypoints
+
+        for q in plan:
+            t += dt
+            pos_dict = {name: float(val) for name, val in zip(joint_names, q)}
+            raw_traj.append({t: pos_dict})
 
         #### END SOLUTION ####
+
         self.bot.arm.core.robot_write_trajectory("group", "arm", "position", raw_traj)
         t = list(raw_traj[-1].keys())[0]
         time.sleep(t)
+
         if goal_name.split('_')[0] == "dropoff":
-            rospy.set_param('object', 'none')  
+            rospy.set_param('object', 'none')
             self.planning_context.publish_dummy_marker()
         if goal_name.split('_')[0] == "pickup":
-            rospy.set_param('object', goal_name.split('_')[1])  
+            rospy.set_param('object', goal_name.split('_')[1])
             airport.ct.pause_pf()
         return 
 
@@ -96,7 +121,11 @@ if __name__ == "__main__":
         env.publish_obj()
 
         ###### BEGIN SOLUTION, PICKUP and DROPOFF TRAY #######
+        print("Picking up tray...")
+        airport.plan_and_execute("pickup_tray")
 
+        print("Dropping off tray...")
+        airport.plan_and_execute("dropoff_tray")
         ###### END SOLUTION #######
   
         airport.planning_context.publish_tray_marker()
@@ -107,13 +136,15 @@ if __name__ == "__main__":
 
         time.sleep(1)
         ##### BEGIN SOLUTION, get y value of the position of the can from the particle filter####
-
+        can_position = airport.planning_context.package_location_y
+        print("Detected can Y-position:", can_position)
         ##### END SOLUTION #####
 
         if can_position + 0.04 < 0.4:
             ###### BEGIN SOLUTION, PICKUP CAN #######
             print("can localization success, particle filter accurate.")           
-            exit(1)
+            airport.plan_and_execute("pickup_can", detected_goal=can_position)
+            airport.plan_and_execute("dropoff_can")
             ###### END SOLUTION #######
         else:
             print("can localization failed, particle filter inaccurate.")
@@ -128,12 +159,15 @@ if __name__ == "__main__":
         time.sleep(1)
         ##### BEGIN SOLUTION, get y value of the position of the wallet from the particle filter####
         #### Hint: the y value is stored in  airport.planning_context.package_location_y
-
+        wallet_position = airport.planning_context.package_location_y
+        print("Detected wallet Y-position:", wallet_position)
         ###### END SOLUTION #######
 
         if wallet_position + 0.086 < 0.4:
             ###### BEGIN SOLUTION, PICKUP WALLET #######
-
+            print("wallet localization success, particle filter accurate.")           
+            airport.plan_and_execute("pickup_wallet", detected_goal=wallet_position)
+            airport.plan_and_execute("dropoff_wallet")
             ###### END SOLUTION #######
         else:
             print("wallet localization failed, particle filter inaccurate.")
