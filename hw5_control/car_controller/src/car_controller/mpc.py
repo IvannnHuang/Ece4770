@@ -98,7 +98,7 @@ class ModelPredictiveController(BaseController):
             prev_pose = rollouts[:, t - 1, :]      # (K, 3)
             u_t = controls[:, t - 1, :]            # (K, 2)
             delta = self.motion_model.compute_changes(prev_pose, u_t, dt)
-            rollouts[:, t, :] = prev_pose + delta  # (K, 3)
+            rollouts[:, t, :] = prev_pose + delta
         # END SOLUTION
         return rollouts
 

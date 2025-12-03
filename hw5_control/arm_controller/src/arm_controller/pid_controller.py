@@ -47,7 +47,7 @@ class PIDController():
             Return:
                 error: a 6D array representing error in each joint.
         '''
-        return self.current_position - self.refs
+        return np.array(self.current_position, dtype=float) - np.array(self.refs, dtype=float)
 
 
     def get_control(self):

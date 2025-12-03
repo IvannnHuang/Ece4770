@@ -15,8 +15,8 @@ def compute_position_in_frame(p, frame):
         error: p expressed in the new coordinate frame [e_x, e_y]
     """
     # BEGIN SOLUTION "QUESTION 1.2" ALT="raise NotImplementedError"
-    p = np.asarray(p)
-    frame = np.asarray(frame)
+    p = np.asarray(p, dtype=float)
+    frame = np.asarray(frame, dtype=float)
 
     dx = p[0] - frame[0]
     dy = p[1] - frame[1]
@@ -88,30 +88,20 @@ class BaseController(object):
             # Hint: compute all the distances from the current state to the
             # path's waypoints. 
             # BEGIN SOLUTION "QUESTION 1.1" ALT="raise NotImplementedError"
-            pose_xy = np.asarray(pose[:2])
-            path_xy = path_xytv[:, :2]
+            pose_xy = np.asarray(pose[:2], dtype=float)
+            path_xy = path_xytv[:, :2].astype(float)
 
-            diffs = path_xy - pose_xy
-            dists = np.linalg.norm(diffs, axis=1)
+            dists = np.linalg.norm(path_xy - pose_xy, axis=1)
 
             closest_idx = int(np.argmin(dists))
+            idxs = np.arange(len(dists))
+            mask = idxs >= closest_idx
+            candidate_idxs = idxs[mask]
 
-            remaining = dists[closest_idx:]
-            mask = remaining >= distance_lookahead
+            best_idx_rel = int(np.argmin(np.abs(dists[candidate_idxs] - distance_lookahead)))
+            best_idx = int(candidate_idxs[best_idx_rel])
 
-            if not np.any(mask):
-                return len(path_xytv) - 1
-
-            rel_idx = int(np.argmax(mask))
-            idx = closest_idx + rel_idx
-
-            # optional refinement
-            if idx > closest_idx:
-                prev_idx = idx - 1
-                if abs(dists[prev_idx] - distance_lookahead) < abs(dists[idx] - distance_lookahead):
-                    idx = prev_idx
-                    
-            return idx
+            return best_idx
             # END SOLUTION
             # return len(path_xytv) - 1
 

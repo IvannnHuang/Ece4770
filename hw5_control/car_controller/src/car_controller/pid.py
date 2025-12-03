@@ -59,10 +59,10 @@ class PIDController(BaseController):
         """
         # BEGIN SOLUTION "QUESTION 2.1" ALT="raise NotImplementedError"
         v_ref = reference_xytv[3]
-        e_ct = error[1]
+        e_ct = float(error[1])
 
-        theta = pose[2]
-        theta_ref = reference_xytv[2]
+        theta = float(pose[2])
+        theta_ref = float(reference_xytv[2])
         e_theta = (theta - theta_ref + np.pi) % (2 * np.pi) - np.pi
 
         d_e_ct = v_ref * np.sin(e_theta)
