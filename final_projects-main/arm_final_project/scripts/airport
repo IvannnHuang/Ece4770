@@ -112,7 +112,8 @@ if __name__ == "__main__":
 
         if can_position + 0.04 < 0.4:
             ###### BEGIN SOLUTION, PICKUP CAN #######
-
+            print("can localization success, particle filter accurate.")           
+            exit(1)
             ###### END SOLUTION #######
         else:
             print("can localization failed, particle filter inaccurate.")
