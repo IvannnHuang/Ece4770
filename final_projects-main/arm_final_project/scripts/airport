@@ -134,8 +134,9 @@ if __name__ == "__main__":
 
         time.sleep(1)
         ##### BEGIN SOLUTION, get y value of the position of the can from the particle filter####
-        can_position = airport.planning_context.package_location_y
-        print("Detected can Y-position:", can_position)
+        raw_can_y = airport.planning_context.package_location_y
+        can_position = float(np.mean(raw_can_y))
+        print("Detected can Y-position (mean):", can_position)        
         ##### END SOLUTION #####
 
         if can_position + 0.04 < 0.4:
@@ -157,8 +158,9 @@ if __name__ == "__main__":
         time.sleep(1)
         ##### BEGIN SOLUTION, get y value of the position of the wallet from the particle filter####
         #### Hint: the y value is stored in  airport.planning_context.package_location_y
-        wallet_position = airport.planning_context.package_location_y
-        print("Detected wallet Y-position:", wallet_position)
+        raw_wallet_y = airport.planning_context.package_location_y
+        wallet_position = float(np.mean(raw_wallet_y))
+        print("Detected wallet Y-position (mean):", wallet_position)
         ###### END SOLUTION #######
 
         if wallet_position + 0.086 < 0.4:
