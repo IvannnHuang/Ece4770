@@ -80,15 +80,19 @@ class Airport(object):
 
         #### BEGIN SOLUTION, let the pid_controller execute the plan ####
 
-        # Interbotix expects: raw_traj = [(time, [pos1, pos2, ..., pos6]), ...]
+        # Interbotix expects each point as:
+        # { "time": t, "positions": [q1, q2, q3, q4, q5, q6] }
         raw_traj = []
         t = 0.0
-        dt = 2.0   # seconds between waypoints (safe but slow)
+        dt = 2.0   # seconds per waypoint (safe for simulation)
 
         for q in plan:
             t += dt
-            q_list = [float(val) for val in q]      # must be list
-            raw_traj.append((t, q_list))            # tuple: (time, positions)
+            q_list = [float(val) for val in q]  # must be a list
+            raw_traj.append({
+                "time": t,
+                "positions": q_list
+            })
 
         #### END SOLUTION ####
 
