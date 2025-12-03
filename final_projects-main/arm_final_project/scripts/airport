@@ -80,16 +80,15 @@ class Airport(object):
 
         #### BEGIN SOLUTION, let the pid_controller execute the plan ####
 
-        # Convert plan (qpath) to Interbotix-style trajectory
-        joint_names = self.bot.arm.group_info.joint_names
+        # Interbotix expects: raw_traj = [(time, [pos1, pos2, ..., pos6]), ...]
         raw_traj = []
         t = 0.0
-        dt = 2.0  # seconds between waypoints
+        dt = 2.0   # seconds between waypoints (safe but slow)
 
         for q in plan:
             t += dt
-            pos_dict = {name: float(val) for name, val in zip(joint_names, q)}
-            raw_traj.append({t: pos_dict})
+            q_list = [float(val) for val in q]      # must be list
+            raw_traj.append((t, q_list))            # tuple: (time, positions)
 
         #### END SOLUTION ####
 
