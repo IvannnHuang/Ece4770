@@ -28,6 +28,12 @@
             hw3_state_estimation/car_state_estimation/particle_filter_sim.launch.
             Use arg tags to pass publish_tf (set to true, false if using fake_localization),
             initial_x, initial_y, and initial_theta -->
+        <include file="$(find car_state_estimation)/launch/include/particle_filter.xml">
+            <arg name="publish_tf" value="$(eval not fake_localization)" />
+            <arg name="initial_x" value="$(arg initial_x)"/>
+            <arg name="initial_y" value="$(arg initial_y)"/>
+            <arg name="initial_theta" value="$(arg initial_theta)"/>
+        </include>
 
         <!-- Launch planner node from package "car_final_project".
             Use param tags to pass num_vertices, connection_radius, and curvature. -->
