@@ -120,6 +120,7 @@ class PlannerROSWithControl(PlannerROS):
         """Send a planned path to the controller."""
         """BEGIN SOLUTION. HINT: Send nav_msgs.msg.Path object to controller"""
         # 1) Build a PoseArray for visualization
+        # 1) Build a PoseArray for visualization
         pa = PoseArray()
         pa.header = Header()
         pa.header.stamp = rospy.Time.now()
@@ -134,15 +135,13 @@ class PlannerROSWithControl(PlannerROS):
             ps.pose.position.z = 0.0
             # angle_to_quaternion returns a Quaternion -> assign directly
             ps.pose.orientation = utils.angle_to_quaternion(state[2])
-            # PoseArray expects Pose, so append ps.pose
-            pa.poses.append(ps.pose)
+            pa.poses.append(ps)
 
-        # publish for RViz visualization
+        # Publish the planned path for visualization
         self._path_pub.publish(pa)
 
-        # 2) Build a nav_msgs/Path for the controller
+        # 2) Build a nav_msgs/Path message for the controller
         path_msg = Path()
-        path_msg.header = Header()
         path_msg.header.stamp = rospy.Time.now()
         path_msg.header.frame_id = "map"
 
@@ -155,9 +154,12 @@ class PlannerROSWithControl(PlannerROS):
             ps.pose.orientation = utils.angle_to_quaternion(state[2])
             path_msg.poses.append(ps)
 
-        # 3) Call the FollowPath service
+        # 3) Call the FollowPath service: it expects (path, speed)
+        # Use a default speed if none is provided via parameters
+        speed = rospy.get_param("~speed", 1.0)
+
         try:
-            controller_result = self.controller(path_msg)
+            controller_result = self.controller(path=path_msg, speed=speed)
         except rospy.ServiceException as e:
             rospy.logerr("FollowPath service call failed: %s", e)
             return False

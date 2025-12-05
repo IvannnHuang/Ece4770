@@ -5,4 +5,4 @@ pid:
 mpc:
   K: 62
   T: 8
-  distance_lookahead : 1.5
+  distance_lookahead : 0.8

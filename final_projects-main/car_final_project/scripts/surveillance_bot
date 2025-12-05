@@ -12,18 +12,24 @@ if __name__ == '__main__':
     rospy.init_node('surveillance_bot')
     bot = SecurityBot()
     start_time = time.time()
-    # start_time = bot.start_time
-    msg = rospy.wait_for_message('/car_status', Bool)
-    while not bot.traversal_complete:
+
+    # OPTIONAL: if you really need to synchronize with some status, you can
+    # wait here for a short time or for pose, but do NOT block forever on /car_status.
+    rospy.loginfo("Surveillance bot starting mission.")
+
+    rate = rospy.Rate(10)  # 10 Hz loop
+    while not rospy.is_shutdown() and not bot.traversal_complete:
         bot.publish_goal()
-    print('done')
+        rate.sleep()
+
+    # After traversal is complete, record results
     time_taken = time.time() - start_time
     bot.submission_file.write("Room visit order: {}\n".format(bot.room_check_order))
     bot.submission_file.write("Time taken: {}\n".format(time_taken))
     bot.submission_file.write("Cathy's life:{}\n".format(bot.life))
-    bot.submission_file.write("Efficiency:{}\n".format(bot.life/time_taken))
+    bot.submission_file.write("Efficiency:{}\n".format(bot.life / time_taken))
 
-    is_alive = (bot.life-bot.doctor_time)>0 and (time_taken<bot.doctor_time)
-    bot.submission_file.write("Is Cathy alive?:{}".format(is_alive))
+    is_alive = (bot.life - bot.doctor_time) > 0 and (time_taken < bot.doctor_time)
+    bot.submission_file.write("Is Cathy alive?:{}\n".format(is_alive))
 
     rospy.loginfo("Surveillance successfully completed in {}".format(time_taken))
