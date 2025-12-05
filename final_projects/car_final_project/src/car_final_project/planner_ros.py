@@ -112,7 +112,7 @@ class PlannerROSWithControl(PlannerROS):
         controller_result = self.send_path(path_states)
         if controller_result.error:
             rospy.logerr("Controller did not track the path successfully")
-            rospy.signal_shutdown("Controller error: path tracking failed")
+            # rospy.signal_shutdown("Controller error: path tracking failed")
             return
         return controller_result
 
