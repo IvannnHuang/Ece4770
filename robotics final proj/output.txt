@@ -1,0 +1,2 @@
+Room visit order: ['C', 'B', 'A']
+Time taken: 101.57092571258545

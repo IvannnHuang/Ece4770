@@ -133,9 +133,7 @@ class PlannerROSWithControl(PlannerROS):
 
         self._path_pub.publish(viz_msg)
 
-        # ----------------------------------------------------------
         # 2. Convert path_states → FollowPathRequest (PoseArray)
-        # ----------------------------------------------------------
         path_msg = PoseArray()
         path_msg.header = Header()
         path_msg.header.stamp = rospy.Time.now()
@@ -148,9 +146,7 @@ class PlannerROSWithControl(PlannerROS):
             ps.pose.orientation = utils.angle_to_quaternion(state[2]).pose.orientation
             path_msg.poses.append(ps.pose)
 
-        # ----------------------------------------------------------
         # 3. Call FollowPath service
-        # ----------------------------------------------------------
         try:
             controller_result = self.controller(path_msg)
         except Exception as e:

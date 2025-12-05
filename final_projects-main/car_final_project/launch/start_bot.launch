@@ -29,10 +29,16 @@
             Use arg tags to pass publish_tf (set to true, false if using fake_localization),
             initial_x, initial_y, and initial_theta -->
 
-
         <!-- Launch planner node from package "car_final_project".
             Use param tags to pass num_vertices, connection_radius, and curvature. -->
-        
+        <node pkg="car_final_project"
+              type="planner"
+              name="planner"
+              output="screen">
+            <param name="num_vertices"        value="$(arg num_vertices)"/>
+            <param name="connection_radius"   value="$(arg connection_radius)"/>
+            <param name="curvature"           value="$(arg curvature)"/>
+        </node>
         <!-- END SOLUTION -->
     </group>
 
@@ -40,7 +46,11 @@
 
     <!-- BEGIN SOLUTION -->
     <!-- Launch controller from pkg "car_controller". Send the controller name as arg "type" -->
-
+    <node pkg="car_controller"
+          type="controller"
+          name="controller"
+          output="screen"
+          args="--type $(arg controller)"/>
     <!-- END SOLUTION -->
 
     <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz" args="-d $(find car_final_project)/config/planning.rviz"/>
