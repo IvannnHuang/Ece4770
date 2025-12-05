@@ -119,39 +119,48 @@ class PlannerROSWithControl(PlannerROS):
     def send_path(self, path_states):
         """Send a planned path to the controller."""
         """BEGIN SOLUTION. HINT: Send nav_msgs.msg.Path object to controller"""
-        viz_msg = PoseArray()
-        viz_msg.header = Header()
-        viz_msg.header.stamp = rospy.Time.now()
-        viz_msg.header.frame_id = "map"
+        # 1) Build a PoseArray for visualization
+        pa = PoseArray()
+        pa.header = Header()
+        pa.header.stamp = rospy.Time.now()
+        pa.header.frame_id = "map"
 
         for state in path_states:
-            pose = PoseStamped()
-            pose.pose.position.x = state[0]
-            pose.pose.position.y = state[1]
-            pose.pose.orientation = utils.angle_to_quaternion(state[2]).pose.orientation
-            viz_msg.poses.append(pose.pose)
+            # state is [x, y, theta]
+            ps = PoseStamped()
+            ps.header = pa.header
+            ps.pose.position.x = state[0]
+            ps.pose.position.y = state[1]
+            ps.pose.position.z = 0.0
+            # angle_to_quaternion returns a Quaternion -> assign directly
+            ps.pose.orientation = utils.angle_to_quaternion(state[2])
+            # PoseArray expects Pose, so append ps.pose
+            pa.poses.append(ps.pose)
 
-        self._path_pub.publish(viz_msg)
+        # publish for RViz visualization
+        self._path_pub.publish(pa)
 
-        # 2. Convert path_states → FollowPathRequest (PoseArray)
-        path_msg = PoseArray()
+        # 2) Build a nav_msgs/Path for the controller
+        path_msg = Path()
         path_msg.header = Header()
         path_msg.header.stamp = rospy.Time.now()
         path_msg.header.frame_id = "map"
 
         for state in path_states:
             ps = PoseStamped()
+            ps.header = path_msg.header
             ps.pose.position.x = state[0]
             ps.pose.position.y = state[1]
-            ps.pose.orientation = utils.angle_to_quaternion(state[2]).pose.orientation
-            path_msg.poses.append(ps.pose)
+            ps.pose.position.z = 0.0
+            ps.pose.orientation = utils.angle_to_quaternion(state[2])
+            path_msg.poses.append(ps)
 
-        # 3. Call FollowPath service
+        # 3) Call the FollowPath service
         try:
             controller_result = self.controller(path_msg)
-        except Exception as e:
-            rospy.logerr("FollowPath service failed: %s", str(e))
-            return None
+        except rospy.ServiceException as e:
+            rospy.logerr("FollowPath service call failed: %s", e)
+            return False
 
         return controller_result
         """END SOLUTION"""
